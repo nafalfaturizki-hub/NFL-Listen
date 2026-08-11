@@ -1,392 +1,421 @@
-🦻 NFL — Nafal Faturizki Listener
+# NFL: Nafal Faturizki Listener
 
-Open Architecture for Affordable Hearing Assistance
+**Open Architecture for Affordable Hearing Assistance**
 
-«“Mendengar itu gratis dan hak semua orang.”»
+> "Hearing is free and a right for everyone."
 
-NFL (Nafal Faturizki Listener) adalah proyek open-source untuk membangun platform alat bantu dengar yang murah, dapat diperbaiki, dapat diaudit, dan tidak bergantung pada vendor tertentu.
-
-NFL bukan sekadar sebuah desain alat bantu dengar. NFL dirancang sebagai arsitektur terbuka yang memungkinkan siapa pun membuat perangkat hearing assistance menggunakan berbagai jenis mikrocontroller, codec audio, sensor, amplifier, dan receiver selama perangkat tersebut memenuhi spesifikasi antarmuka NFL.
-
-Tujuan utamanya sederhana:
-
-«Menghilangkan biaya dan ketergantungan teknologi sebagai penghalang seseorang untuk mendapatkan bantuan pendengaran.»
+NFL is an open-source platform designed to democratize hearing assistance technology. It provides an open, modular architecture that enables anyone to build, repair, and customize hearing assistance devices using commodity components and vendor-independent design.
 
 ---
 
-🌍 Mengapa NFL?
+## 🎯 Mission
 
-Alat bantu dengar modern mampu melakukan banyak hal: memperkuat frekuensi tertentu, menyesuaikan suara berdasarkan gangguan pendengaran, mengurangi noise, mengendalikan feedback, dan mengoptimalkan suara percakapan.
+To eliminate cost and technology dependency as barriers to accessing hearing assistance by creating a transparent, repairable, and affordable open-source ecosystem.
 
-Namun teknologi tersebut sering hadir sebagai produk tertutup dengan:
-
-- hardware proprietary,
-- firmware tertutup,
-- software vendor,
-- aplikasi wajib,
-- cloud service,
-- biaya servis,
-- komponen khusus,
-- dan ekosistem yang sulit diperbaiki atau diganti.
-
-NFL mengambil pendekatan berbeda.
-
-Teknologi hearing assistance seharusnya dapat dipelajari, dibuat, diperbaiki, dimodifikasi, dan digunakan kembali oleh komunitas.
-
-NFL karena itu dirancang dengan prinsip:
-
-- Open source
-- Open hardware
-- Offline-first
-- No mandatory cloud
-- No mandatory subscription
-- Vendor-independent architecture
-- Repairable
-- Low-cost
-- Privacy-first
-- Rust-based
-- Modular
-- Reproducible
+**Our Goal:**
+> "Useful hearing assistance devices can be built with open technology, low cost, and without dependency on cloud services or proprietary vendors."
 
 ---
 
-🏗️ Bukan Satu Hardware
+## 🌟 Core Principles
 
-NFL tidak dikunci pada satu MCU atau satu vendor.
+- **Open Source** — Firmware and software under GPL-3.0
+- **Open Hardware** — Designs under CERN-OHL-S v2
+- **Vendor-Independent** — Works with multiple microcontrollers and components
+- **Offline-First** — No mandatory cloud, subscription, or internet required
+- **Privacy-First** — Audio processing happens on-device
+- **Repairable** — Full documentation for diagnosis, repair, and calibration
+- **Low-Cost** — Designed for affordability and accessibility
+- **Modular** — Flexible DSP pipeline; simple or advanced configurations
+- **Rust-Based** — Memory-safe, deterministic, bare-metal capable
+- **Reproducible** — Tested and validated with objective metrics
 
-Arsitekturnya terdiri dari beberapa lapisan:
+---
 
+## 🏗️ Architecture
+
+NFL is not locked to a single microcontroller or vendor. It uses a layered architecture that allows different hardware implementations while maintaining software compatibility.
+
+```
 ┌──────────────────────────────────────────┐
-│              NFL USER LAYER              │
-│ Audiogram • Profiles • Presets • Safety  │
+│         NFL USER LAYER                   │
+│  Audiogram • Profiles • Presets • Safety │
 ├──────────────────────────────────────────┤
-│               NFL DSP CORE               │
-│ EQ • WDRC • Noise Reduction • Feedback   │
-│ Limiter • Gain • Frequency Shaping       │
+│         NFL DSP CORE                     │
+│  EQ • WDRC • Noise Reduction • Feedback  │
+│  Limiter • Gain • Frequency Shaping      │
 ├──────────────────────────────────────────┤
-│             NFL AUDIO RUNTIME            │
-│ Buffer • DMA • Scheduling • Clock        │
+│       NFL AUDIO RUNTIME                  │
+│  Buffer • DMA • Scheduling • Clock       │
 ├──────────────────────────────────────────┤
-│         HARDWARE ABSTRACTION LAYER       │
-│ Audio • Storage • Radio • Power          │
+│   HARDWARE ABSTRACTION LAYER             │
+│  Audio • Storage • Radio • Power         │
 ├──────────────────────────────────────────┤
-│                 HARDWARE                │
-│ MCU • ADC/DAC • Mic • Amp • Receiver     │
+│           HARDWARE                       │
+│  MCU • ADC/DAC • Mic • Amp • Receiver    │
 └──────────────────────────────────────────┘
+```
 
-Dengan pendekatan ini, algoritma NFL tidak bergantung pada satu jenis microcontroller.
+### Hardware Flexibility
 
-Sebuah implementasi dapat menggunakan MCU murah untuk perangkat entry-level, MCU dengan BLE untuk perangkat portable, atau hardware yang lebih kuat untuk algoritma DSP yang lebih kompleks.
-
-Hardware adalah implementasi. NFL adalah arsitekturnya.
+Implementations can use:
+- **Entry-level**: Low-cost MCU for basic amplification
+- **Mobile**: MCU with BLE connectivity
+- **Advanced**: Powerful hardware for complex DSP algorithms
 
 ---
 
-🎧 Audio Processing
+## 🎧 Audio Processing Pipeline
 
-Jantung NFL adalah real-time digital signal processing (DSP).
+The core of NFL is real-time digital signal processing (DSP):
 
-Pipeline dasarnya dapat terdiri dari:
-
+```
 Microphone
-     │
-     ▼
+    ↓
 Audio Capture
-     │
-     ▼
+    ↓
 Input Conditioning
-     │
-     ▼
+    ↓
 Frequency Shaping / EQ
-     │
-     ▼
+    ↓
 Multi-band WDRC
-     │
-     ▼
+    ↓
 Noise Reduction
-     │
-     ▼
+    ↓
 Feedback Control
-     │
-     ▼
-Gain
-     │
-     ▼
-MPO / Safety Limiter
-     │
-     ▼
+    ↓
+Gain & MPO Limiting
+    ↓
 Audio Output
-     │
-     ▼
+    ↓
 Receiver
+```
 
-Setiap blok dirancang sebagai modul independen sehingga implementasi sederhana dapat menggunakan DSP minimal, sementara hardware yang lebih kuat dapat menggunakan algoritma yang lebih kompleks.
-
----
-
-🧠 Rust sebagai Fondasi
-
-Firmware NFL dikembangkan menggunakan Rust dengan tujuan:
-
-- memory safety,
-- deterministic execution,
-- tanpa garbage collector,
-- cocok untuk bare-metal,
-- dapat digunakan pada sistem dengan resource terbatas,
-- modular,
-- mudah diuji,
-- dan dapat dibangun secara reproducible.
-
-Algoritma DSP juga dirancang agar dapat dijalankan di simulator desktop sebelum dipindahkan ke hardware.
-
-Contohnya:
-
-WAV file
-   │
-   ▼
-NFL DSP
-   │
-   ▼
-Processed WAV
-   │
-   ├── latency analysis
-   ├── SNR analysis
-   ├── frequency response
-   ├── THD analysis
-   └── speech-quality metrics
-
-Kode DSP yang sama kemudian dapat digunakan pada perangkat embedded.
+Each processing block is designed as an independent module:
+- Simple implementations use minimal DSP
+- Advanced hardware can employ sophisticated algorithms
+- Algorithms are testable on desktop before deployment
 
 ---
 
-👤 Personal Hearing Profile
+## 🧠 Technology Stack
 
-NFL menggunakan konsep Hearing Profile yang terpisah dari hardware.
+### Firmware & DSP
+- **Language**: Rust
+- **Benefits**:
+  - Memory safety without garbage collection
+  - Deterministic execution for real-time processing
+  - Bare-metal capable for resource-constrained devices
+  - Modular and testable design
+  - Reproducible builds
 
-Sebuah profile dapat berisi:
+### Validation Pipeline
+```
+WAV File Input
+    ↓
+NFL DSP Processing
+    ↓
+Processed Output
+    ├── Latency analysis
+    ├── SNR analysis
+    ├── Frequency response
+    ├── THD analysis
+    └── Speech quality metrics
+```
 
+The same DSP code runs on both desktop simulation and embedded devices.
+
+---
+
+## 👤 Personal Hearing Profiles
+
+User hearing profiles are decoupled from hardware, enabling:
+
+- **Profile Portability**: Use the same hearing profile across multiple NFL devices
+- **Consistent Configuration**: Audiogram, frequency response, WDRC parameters, noise reduction settings
+- **Hardware Independence**: Switch devices without reconfiguration
+- **Separate Calibration**: Individual compensation for microphone, DAC, amplifier, and receiver characteristics
+
+```
 Hearing Profile
 ├── Audiogram
-├── Frequency response
-├── Band gain
+├── Frequency response curve
+├── Band-specific gain
 ├── WDRC parameters
-├── Noise reduction
-├── Feedback parameters
-├── MPO
+├── Noise reduction settings
+├── Feedback control parameters
+├── Maximum power output (MPO)
 ├── Environment presets
 └── Calibration metadata
-
-Dengan demikian profile pengguna tidak terikat pada satu perangkat.
-
-Profile
-   │
-   ├── NFL Device A
-   ├── NFL Device B
-   └── NFL Device C
-
-Hardware calibration dan user profile juga dipisahkan sehingga karakteristik microphone, DAC, amplifier, dan receiver dapat dikompensasikan secara individual.
+```
 
 ---
 
-🔬 Simulator dan Benchmark
+## 🔬 Testing & Validation
 
-NFL tidak mengandalkan klaim subjektif seperti “suara lebih jelas”.
+NFL uses objective, measurable benchmarks rather than subjective claims.
 
-Setiap algoritma harus dapat diuji secara terukur.
+### Validation Stages
 
-Benchmark mencakup:
+1. **Simulation** — Desktop algorithm testing with metrics
+2. **Electronic Benchmark** — Component-level verification
+3. **Acoustic Validation** — Real-world performance testing
 
-- CPU utilization
-- memory usage
-- cycles/sample
-- latency
-- power consumption
-- frequency response
-- noise floor
-- THD+N
-- dynamic range
-- feedback margin
-- acoustic output
-- speech intelligibility
+### Measured Metrics
 
-Pengembangan dilakukan dalam tiga tahap:
+- CPU utilization & memory usage
+- Processing latency
+- Power consumption
+- Frequency response
+- Noise floor
+- Total Harmonic Distortion (THD+N)
+- Dynamic range
+- Feedback margin
+- Speech intelligibility
 
-SIMULATION
+---
+
+## 🔐 Privacy & Security
+
+### Privacy by Design
+
+- **On-Device Processing**: Audio processing happens locally
+- **No Cloud Required**: No mandatory cloud accounts or servers
+- **No Forced Uploads**: Audio is never uploaded without explicit consent
+- **No Mandatory Analytics**: No behavioral tracking
+- **No Subscription**: Optional services, not required for basic functionality
+
+### Optional Connectivity
+
+When smartphone connectivity is used, it's limited to:
+- Device configuration
+- Calibration procedures
+- Hearing profile management
+- Diagnostics
+- Firmware updates
+
+---
+
+## 🔧 Repairability & Sustainability
+
+Full project documentation includes:
+
+```
+Hardware Documentation
+├── Schematics
+├── PCB source files
+├── Gerber files
+├── Bill of Materials (BOM)
+├── Mechanical design
+
+Firmware & Software
+├── Source code
+├── Build procedures
+├── Testing procedures
+
+Maintenance
+├── Repair procedures
+├── Calibration procedures
+├── Diagnostics guide
+├── Assembly documentation
+```
+
+### Repair Cycle
+
+```
+Device Failure
     ↓
-ELECTRONIC BENCHMARK
+Diagnosis (documented)
     ↓
-ACOUSTIC VALIDATION
+Component Replacement (available)
+    ↓
+Calibration (documented)
+    ↓
+Reuse
 
-Dengan demikian perubahan algoritma dapat dibandingkan secara objektif sebelum digunakan pada perangkat nyata.
+NOT:
 
----
-
-🔐 Privacy by Design
-
-NFL dirancang offline-first.
-
-Pemrosesan audio utama terjadi di perangkat.
-
-Tidak diperlukan:
-
-- akun cloud,
-- server audio,
-- upload rekaman suara,
-- analytics wajib,
-- subscription,
-- koneksi internet untuk fungsi dasar.
-
-Data pengguna seperti audiogram dan hearing profile dapat disimpan secara lokal.
-
-Jika komunikasi dengan smartphone digunakan, fungsinya terutama untuk:
-
-- konfigurasi,
-- kalibrasi,
-- profile management,
-- diagnostik,
-- dan firmware update.
+Device Failure
+    ↓
+Discard
+    ↓
+Buy New
+```
 
 ---
 
-🔧 Repairability
+## 🌱 Open Ecosystem
 
-NFL dirancang agar perangkat tidak menjadi barang sekali pakai.
+NFL can be developed and deployed by:
 
-Dokumentasi proyek mencakup:
+- **Engineers & Students**: Hobbyist and academic implementations
+- **Technical Schools & Universities**: Educational projects and prototypes
+- **Maker Communities**: DIY hearing assistance devices
+- **NGOs & Social Organizations**: Community-driven accessibility programs
+- **Local Technicians**: Service and repair networks
+- **Small Manufacturers**: Cost-effective production runs
 
-- schematic,
-- PCB source,
-- Gerber,
-- BOM,
-- firmware source,
-- mechanical design,
-- calibration procedure,
-- testing procedure,
-- dan assembly documentation.
+### Scaling Options
 
-Tujuannya adalah memungkinkan:
+**NFL Basic**
+- Ultra-low-cost entry-level device
+- Essential amplification and noise reduction
 
-Rusak
-  ↓
-Diagnosis
-  ↓
-Ganti komponen
-  ↓
-Kalibrasi
-  ↓
-Gunakan kembali
+**NFL Advanced**
+- Complex DSP algorithms
+- Enhanced signal processing
+- Advanced features
 
-Bukan:
-
-Rusak
-  ↓
-Buang
-  ↓
-Beli baru
+Both remain part of the same ecosystem when following NFL specifications.
 
 ---
 
-🌱 Ekosistem Terbuka
+## 📋 Project Structure
 
-NFL dapat dikembangkan oleh:
-
-- engineer,
-- mahasiswa,
-- maker,
-- sekolah teknik,
-- universitas,
-- NGO,
-- teknisi lokal,
-- komunitas open-source,
-- produsen kecil,
-- dan organisasi sosial.
-
-Seseorang dapat membuat:
-
-NFL Basic
-
-untuk perangkat ultra-low-cost,
-
-atau:
-
-NFL Advanced
-
-dengan DSP yang lebih kuat.
-
-Selama mengikuti spesifikasi NFL, keduanya tetap berada dalam ekosistem yang sama.
+```
+nfl/
+├── firmware/           # Rust-based firmware (GPL-3.0)
+├── dsp/                # Audio processing algorithms (GPL-3.0)
+├── hardware/           # PCB designs and schematics (CERN-OHL-S v2)
+├── software/           # Desktop tools and utilities
+├── documentation/      # Complete build and usage guides (CC BY-SA 4.0)
+├── tests/              # Validation and benchmark tests
+├── simulator/          # Desktop DSP simulator
+└── README.md          # This file
+```
 
 ---
 
-💡 Tujuan Akhir
+## 📜 Licensing
 
-NFL tidak bertujuan mengalahkan perusahaan hearing-aid profesional dalam seluruh aspek teknologi.
+| Component | License |
+|-----------|---------|
+| Firmware | GPL-3.0 |
+| Software & DSP | GPL-3.0 |
+| Hardware Design | CERN-OHL-S v2 |
+| Documentation | CC BY-SA 4.0 |
 
-Tujuannya berbeda.
-
-NFL ingin membuktikan bahwa:
-
-«perangkat hearing assistance yang berguna dapat dibangun dengan teknologi terbuka, biaya rendah, dan tanpa ketergantungan pada cloud atau vendor tertentu.»
-
-Jika sebuah komunitas di kota besar dapat membuat perangkat sendiri, itu bagus.
-
-Jika sebuah SMK dapat memperbaikinya, lebih bagus.
-
-Jika sebuah NGO dapat membangun 100 perangkat dengan biaya rendah, lebih bagus lagi.
-
-Dan jika satu perangkat akhirnya membuat seseorang kembali mendengar suara anaknya, keluarganya, atau lingkungan di sekitarnya, maka proyek ini telah mencapai tujuannya.
+Each component includes build and usage documentation to ensure the community is not dependent on the original creators' personal knowledge.
 
 ---
 
-❤️ Filosofi NFL
+## 🚀 Getting Started
 
-NFL lahir dari keyakinan sederhana:
+### Prerequisites
+- Rust toolchain (latest stable)
+- Hardware components (see BOM in `/hardware`)
+- Basic embedded systems knowledge
 
-«Alat bantu dengar bukan kemewahan.»
+### Quick Start
 
-Jutaan orang hidup dengan keterbatasan pendengaran sementara teknologi untuk membantu mereka sebenarnya telah tersedia.
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/your-org/nfl.git
+   cd nfl
+   ```
 
-Hambatannya sering bukan karena teknologi tidak ada.
+2. **Build the Simulator**
+   ```bash
+   cd simulator
+   cargo build --release
+   ```
 
-Hambatannya adalah akses.
+3. **Run Tests**
+   ```bash
+   cargo test --all
+   ```
 
-NFL berusaha mengurangi hambatan tersebut melalui teknologi terbuka.
+4. **Review Hardware Documentation**
+   ```
+   See /hardware/README.md for PCB assembly and testing
+   ```
 
-Bukan untuk mengalahkan industri.
-
-Bukan untuk membuat semua orang menggunakan satu perangkat.
-
-Tetapi untuk membuat sebuah fondasi yang dapat digunakan siapa saja untuk membangun perangkat mereka sendiri.
-
-Satu desain.
-
-Satu firmware.
-
-Satu profil.
-
-Satu komunitas.
-
-Satu orang yang kembali mendengar dunianya.
-
-«“Mendengar itu gratis dan hak semua orang.”»
-
----
-
-📜 Lisensi
-
-NFL dirancang sebagai proyek open-source dan open-hardware.
-
-Lisensi yang ditargetkan:
-
-Bagian| Lisensi
-Firmware| GPL-3.0
-Software / DSP| GPL-3.0
-Hardware design| CERN-OHL-S v2
-Dokumentasi| CC BY-SA 4.0
-
-Setiap bagian proyek harus memiliki dokumentasi build dan penggunaan yang memadai sehingga komunitas tidak bergantung pada pengetahuan pribadi pembuatnya.
+For detailed build and deployment instructions, see [BUILDING.md](./BUILDING.md).
 
 ---
 
-🚀 NFL dalam satu kalimat
+## 🤝 Contributing
 
-NFL adalah platform open-source dan open-hardware untuk membangun alat bantu dengar yang murah, modular, dapat diperbaiki, privat, dan tidak terkunci pada vendor tertentu.
+We welcome contributions from:
+- DSP algorithm improvements
+- Hardware reference designs
+- Documentation and translations
+- Testing and validation
+- Community adaptations
+
+Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📚 Documentation
+
+- **[Architecture Guide](./docs/ARCHITECTURE.md)** — System design and specifications
+- **[Hardware Guide](./hardware/README.md)** — Component selection and PCB assembly
+- **[Firmware Guide](./firmware/README.md)** — Compilation and deployment
+- **[DSP Reference](./dsp/README.md)** — Algorithm documentation
+- **[User Manual](./docs/USER_MANUAL.md)** — Operation and configuration
+
+---
+
+## ❤️ Philosophy
+
+NFL is founded on a simple belief:
+
+> "Hearing assistance is not a luxury."
+
+Millions of people live with hearing limitations while the technology to help them already exists. The barrier is often not the technology itself—it's **access**.
+
+NFL works to reduce that barrier through open technology.
+
+**Not to defeat the industry.**  
+**Not to force everyone onto one device.**  
+**But to create a foundation anyone can use to build their own solution.**
+
+---
+
+## 📞 Community & Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-org/nfl/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/nfl/discussions)
+- **Email**: contact@nfl-project.org
+- **Forum**: [Community Forum](https://forum.nfl-project.org)
+
+---
+
+## 📊 In One Sentence
+
+**NFL is an open-source and open-hardware platform for building affordable, modular, repairable, privacy-first hearing assistance devices without vendor lock-in.**
+
+---
+
+## 📝 Citation
+
+If you reference NFL in academic or professional work, please cite as:
+
+```
+@software{nfl2024,
+  title={NFL: Nafal Faturizki Listener - Open Architecture for Affordable Hearing Assistance},
+  author={[Your Organization]},
+  year={2024},
+  url={https://github.com/your-org/nfl},
+  license={Mixed: GPL-3.0, CERN-OHL-S v2, CC BY-SA 4.0}
+}
+```
+
+---
+
+## 📄 License Summary
+
+This project is licensed under multiple licenses depending on the component:
+- **Firmware & Software**: GNU General Public License v3.0
+- **Hardware**: CERN Open Hardware License v2 (Strongly Reciprocal)
+- **Documentation**: Creative Commons Attribution-ShareAlike 4.0
+
+See individual component directories for full license text.
+
+---
+
+**"Hearing is free and a right for everyone."**
+
+Last Updated: 2024  
+Status: Active Development
